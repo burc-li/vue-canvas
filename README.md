@@ -1,35 +1,19 @@
-# vue-canvas
+# vue-map-drilling
 
-This template should help get you started developing with Vue 3 in Vite.
+## 介绍
+本仓库采用 vue3 + vite，基于 canvas 实现了涂鸦面板和九宫格手势解锁功能
 
-## Recommended IDE Setup
-
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
+## 安装
+```
 npm install
 ```
 
-### Compile and Hot-Reload for Development
-
-```sh
+### 启动
+```
 npm run dev
 ```
 
-### Compile and Minify for Production
-
-```sh
-npm run build
+### 构建
 ```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
+npm run build
 ```
