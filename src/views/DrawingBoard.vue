@@ -1,13 +1,19 @@
 <script setup>
-import Board from '@/components/Board/index.vue'
+import { ref, onMounted } from 'vue'
+import Board from '@/canvas/board.js'
+
+const container = ref(null)
+onMounted(() => {
+  // 新建一个画板
+  new Board(container.value)
+})
 </script>
 
 <template>
-  <div class="drawing-board" style="overflow: auto;">
-    <h3>这是一个画板，您可以随意涂写和绘画！</h3>
-    <!-- 画板默认宽度200px 默认高度200px，您可以自定义宽高 -->
-    <Board style="width: 100%; height: 100%"></Board>
-    <!-- <Board style="width:2000px; height: 2000px"></Board> -->
+  <div class="drawing-board">
+    <h3>这是一个画板，您可以随意涂写和绘画！支持撤销(Ctrl+Z) / 回退(Ctrl+Y)操作</h3>
+    <div id="container" ref="container" style="width: 100%; height: 100%"></div>
+    <!-- <div id="container" ref="container" style="width: 2000px; height: 2000px"></div> -->
   </div>
 </template>
 
@@ -17,7 +23,7 @@ import Board from '@/components/Board/index.vue'
   height: 100%;
   box-sizing: border-box;
   h3{
-    position: absolute;
+    position: fixed;
     top: 30px;
     left: 50%;
     transform: translateX(-50%);
