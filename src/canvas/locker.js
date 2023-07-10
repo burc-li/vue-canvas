@@ -30,7 +30,9 @@ export default class BoardCanvas {
     // 确认密码
     this.confirmPassword = []
     // 绘制路径
-    this.pathCellIds = []
+    this.currentPath = []
+    // 背景宫格的画布快照
+    this.cellImageData = null
     // 上一次绘制的画布快照
     this.lastImageData = null
 
@@ -50,13 +52,13 @@ export default class BoardCanvas {
 
   // 初始化
   init() {
-    this.drawCircle()
+    this.drawCell()
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
     this.canvas.addEventListener('mousedown', this.mousedownEvent.bind(this))
   }
 
   // 绘制九个圆圈
-  drawCircle() {
+  drawCell() {
     const columns = 3
     const rows = 3
     const width = this.canvas.width
@@ -65,38 +67,58 @@ export default class BoardCanvas {
     const paddingLeft = (width - columns * 2 * this.radius - (columns - 1) * this.columnSpacing) / 2
     for (let i = 0; i < rows; i++) {
       for (let j = 0; j < columns; j++) {
-        const point = {
+        const data = {
           x: paddingLeft + (2 * j + 1) * this.radius + j * this.columnSpacing,
           y: paddingTop + (2 * i + 1) * this.radius + i * this.rowsSpacing,
-          linked: false, // false：当前点未被连接  true：当前点已被连接
           id: i * columns + j
         }
 
-        this.lockerCells.push(point)
+        this.lockerCells.push(data)
 
         this.ctx.beginPath()
-        this.ctx.arc(point.x, point.y, this.radius, 0, 2 * Math.PI, true)
+        this.ctx.arc(data.x, data.y, this.radius, 0, 2 * Math.PI, true)
         this.ctx.strokeStyle = this.stroke
         this.ctx.lineWidth = 3
         this.ctx.stroke()
       }
     }
-    this.saveImageData()
+    this.cellImageData = this.lastImageData = this.getImageData()
   }
 
   // 鼠标事件
   mousedownEvent(e) {
-    const that = this
+    // 清空画布
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.currentPath = [] // 清空当前绘制路径
+    this.lastImageData = null // 清空绘制的画布快照
+    this.restoreImageData(this.cellImageData) // 恢复背景宫格快照
+
     this.ctx.beginPath()
     this.ctx.moveTo(e.offsetX, e.offsetY)
     this.ctx.stroke()
-    this.selectCircleAt(e.offsetX, e.offsetY)
+    this.selectCellAt(e.offsetX, e.offsetY)
 
+    // 鼠标移动事件
+    const that = this
     this.canvas.onmousemove = function (e) {
+      // 绘制路径 从最后一个点到当前点
+      const lastData = that.currentPath[that.currentPath.length - 1]
+      if (!lastData) return
+
+      // 恢复快照
+      that.restoreImageData(that.lastImageData)
+
+      that.ctx.beginPath()
+      that.ctx.moveTo(lastData.x, lastData.y)
       that.ctx.lineTo(e.offsetX, e.offsetY)
+      that.ctx.strokeStyle = '#de5e60'
+      that.ctx.lineWidth = 3
       that.ctx.stroke()
+      that.selectCellAt(e.offsetX, e.offsetY)
     }
+
     this.canvas.onmouseup = this.canvas.onmouseout = function () {
+      // 恢复快照
       this.onmousemove = null
       this.onmouseup = null
       this.onmouseout = null
@@ -104,30 +126,51 @@ export default class BoardCanvas {
   }
 
   // 选中当前坐标所在的圆圈
-  selectCircleAt(x, y) {
+  selectCellAt(x, y) {
     // 当前坐标点是否在圆内
-    const point = this.lockerCells.find((point) => {
-      return Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2) <= Math.pow(this.radius, 2)
+    const data = this.lockerCells.find((item) => {
+      return Math.pow(item.x - x, 2) + Math.pow(item.y - y, 2) <= Math.pow(this.radius, 2)
     })
-    console.log(point)
-    if (point && !point.linked) {
-      this.startX = point.x
-      this.startY = point.y
-      point.linked = true
-      this.pathCellIds.push(point.id)
-      // this.restoreImageData()
+    const existing = this.currentPath.some((item) => item.id === data?.id)
+    if (!data || existing) return
 
-      // 绘制选中样式
+    this.startX = data.x
+    this.startY = data.y
+
+    this.restoreImageData(this.lastImageData)
+
+    // 绘制选中样式
+    this.ctx.beginPath()
+    this.ctx.arc(data.x, data.y, this.radius / 2.5, 0, 2 * Math.PI, true)
+    this.ctx.fillStyle = '#de5e60'
+    this.ctx.fill()
+
+    // 绘制路径 从最后一个点到当前点
+    const lastData = this.currentPath[this.currentPath.length - 1]
+    if (lastData) {
+      this.ctx.beginPath()
+      this.ctx.moveTo(lastData.x, lastData.y)
+      this.ctx.lineTo(data.x, data.y)
+      this.ctx.strokeStyle = '#de5e60'
+      this.ctx.lineWidth = 3
+      this.ctx.stroke()
     }
+
+    // 保存快照
+    this.lastImageData = this.getImageData()
+
+    // 保存当前点
+    this.currentPath.push(data)
   }
 
-  // 保存画布快照
-  saveImageData() {
-    const data = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-    this.lastImageData = data
+  // 获取画布快照
+  getImageData() {
+    return this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
   }
+
   // 恢复画布快照
-  restoreImageData() {
-    this.ctx.putImageData(this.lastImageData, 0, 0)
+  restoreImageData(imageData) {
+    if (!imageData) return
+    this.ctx.putImageData(imageData, 0, 0)
   }
 }
