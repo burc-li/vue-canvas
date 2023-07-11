@@ -54,6 +54,7 @@ export default class BoardCanvas {
   // 初始化
   init() {
     this.drawCellGrids()
+    this.drawText('请绘制图案密码', this.canvas.width / 2, 60)
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
     this.canvas.addEventListener('mousedown', this.mousedownEvent.bind(this))
   }
@@ -115,6 +116,28 @@ export default class BoardCanvas {
     this.canvas.onmouseup = this.canvas.onmouseout = function () {
       // 恢复快照
       that.restoreImageData(that.lastImageData)
+
+      // 文本 和 快照 之间的逻辑！！！！
+      const currentPathIds = that.currentPath.map((item) => item.id)
+      if (that.password.length === 0 && that.confirmPassword.length === 0) {
+        that.password = currentPathIds
+        that.drawText('请再次绘制图案密码', that.canvas.width / 2, 60)
+      } else if (that.password.length > 0 && that.confirmPassword.length === 0) {
+        that.confirmPassword = currentPathIds
+        if (that.password.join('') === that.confirmPassword.join('')) {
+          that.drawText('图案密码设置成功', that.canvas.width / 2, 60)
+        } else {
+          that.drawText('与上次绘制不一致，请重试', that.canvas.width / 2, 60)
+          that.password = []
+          that.confirmPassword = []
+        }
+      } else if (that.password.length > 0 && that.confirmPassword.length > 0) {
+        if (that.password.join('') === currentPathIds.join('')) {
+          that.drawText('图案密码正确', that.canvas.width / 2, 60)
+        } else {
+          that.drawText('图案密码错误', that.canvas.width / 2, 60)
+        }
+      }
 
       this.onmousemove = null
       this.onmouseup = null
