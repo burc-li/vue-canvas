@@ -1,20 +1,7 @@
-// <!-- 请绘制图案密码 -->
-// <!-- 再次绘制图案进行确认 -->
-// <!-- 与上次绘制不一致，请重试 -->
-// <!-- 图案密码设置成功 -->
 export default class BoardCanvas {
   constructor(container, options = {}) {
     // 容器
     this.container = container
-    // canvas画布
-    this.canvas = this.createCanvas(container)
-    // 绘制工具
-    this.ctx = this.canvas.getContext('2d')
-
-    // 起始点位置
-    this.startX = 0
-    this.stateY = 0
-
     // 圆半径
     this.radius = options.radius || 20
     // 圆圈列间距
@@ -23,12 +10,25 @@ export default class BoardCanvas {
     this.rowsSpacing = options.rowsSpacing || 10
     // 圆圈描边颜色
     this.stroke = options.stroke || '#fff'
+    // 路径描边颜色
+    this.lineStroke = options.lineStroke || '#fff'
+    // 选中图案填充颜色
+    this.selectedFill = options.selectedFill || this.lineStroke
+    // 图案解锁器背景色
+    this.backgroundColor = options.backgroundColor || '#fff'
+
+    // canvas画布
+    this.canvas = this.createCanvas(container)
+    // 绘制工具
+    this.ctx = this.canvas.getContext('2d')
+
     // 九个圆心坐标
     this.lockerCells = []
     // 密码
     this.password = []
     // 确认密码
     this.confirmPassword = []
+
     // 绘制路径
     this.currentPath = []
     // 背景宫格的画布快照
@@ -46,19 +46,20 @@ export default class BoardCanvas {
     canvas.width = container.clientWidth
     canvas.height = container.clientHeight
     canvas.style.display = 'block'
+    canvas.style.backgroundColor = this.backgroundColor
     container.appendChild(canvas)
     return canvas
   }
 
   // 初始化
   init() {
-    this.drawCell()
+    this.drawCellGrids()
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
     this.canvas.addEventListener('mousedown', this.mousedownEvent.bind(this))
   }
 
-  // 绘制九个圆圈
-  drawCell() {
+  // 绘制宫格圆圈
+  drawCellGrids() {
     const columns = 3
     const rows = 3
     const width = this.canvas.width
@@ -93,9 +94,7 @@ export default class BoardCanvas {
     this.lastImageData = null // 清空绘制的画布快照
     this.restoreImageData(this.cellImageData) // 恢复背景宫格快照
 
-    this.ctx.beginPath()
-    this.ctx.moveTo(e.offsetX, e.offsetY)
-    this.ctx.stroke()
+    // 选中宫格，并绘制点到点路径
     this.selectCellAt(e.offsetX, e.offsetY)
 
     // 鼠标移动事件
@@ -107,18 +106,16 @@ export default class BoardCanvas {
 
       // 恢复快照
       that.restoreImageData(that.lastImageData)
-
-      that.ctx.beginPath()
-      that.ctx.moveTo(lastData.x, lastData.y)
-      that.ctx.lineTo(e.offsetX, e.offsetY)
-      that.ctx.strokeStyle = '#de5e60'
-      that.ctx.lineWidth = 3
-      that.ctx.stroke()
+      // 绘制路径
+      that.drawLine(lastData, { x: e.offsetX, y: e.offsetY })
+      // 选中宫格，并绘制点到点路径
       that.selectCellAt(e.offsetX, e.offsetY)
     }
 
     this.canvas.onmouseup = this.canvas.onmouseout = function () {
       // 恢复快照
+      that.restoreImageData(that.lastImageData)
+
       this.onmousemove = null
       this.onmouseup = null
       this.onmouseout = null
@@ -134,33 +131,51 @@ export default class BoardCanvas {
     const existing = this.currentPath.some((item) => item.id === data?.id)
     if (!data || existing) return
 
-    this.startX = data.x
-    this.startY = data.y
-
+    // 恢复画布快照
     this.restoreImageData(this.lastImageData)
 
     // 绘制选中样式
-    this.ctx.beginPath()
-    this.ctx.arc(data.x, data.y, this.radius / 2.5, 0, 2 * Math.PI, true)
-    this.ctx.fillStyle = '#de5e60'
-    this.ctx.fill()
+    this.drawCircle(data.x, data.y, this.radius / 1.5, 'rgba(0,0,0,0.1)')
+    this.drawCircle(data.x, data.y, this.radius / 2.5, this.selectedFill)
 
     // 绘制路径 从最后一个点到当前点
     const lastData = this.currentPath[this.currentPath.length - 1]
     if (lastData) {
-      this.ctx.beginPath()
-      this.ctx.moveTo(lastData.x, lastData.y)
-      this.ctx.lineTo(data.x, data.y)
-      this.ctx.strokeStyle = '#de5e60'
-      this.ctx.lineWidth = 3
-      this.ctx.stroke()
+      this.drawLine(lastData, data)
     }
 
-    // 保存快照
+    // 保存画布快照
     this.lastImageData = this.getImageData()
 
     // 保存当前点
     this.currentPath.push(data)
+  }
+
+  // 绘制圆
+  drawCircle(x, y, radius, fill) {
+    this.ctx.beginPath()
+    this.ctx.arc(x, y, radius, 0, 2 * Math.PI, true)
+    this.ctx.fillStyle = fill
+    this.ctx.fill()
+  }
+  // 绘制路径
+  drawLine(start, end, stroke = this.lineStroke) {
+    this.ctx.beginPath()
+    this.ctx.moveTo(start.x, start.y)
+    this.ctx.lineTo(end.x, end.y)
+    this.ctx.strokeStyle = stroke
+    this.ctx.lineWidth = 3
+    this.ctx.lineCap = 'round'
+    this.ctx.lineJoin = 'round'
+    this.ctx.stroke()
+  }
+  // 绘制文字
+  drawText(text, x, y) {
+    this.ctx.beginPath()
+    this.ctx.font = '18px Arial'
+    this.ctx.textAlign = 'center'
+    this.ctx.fillStyle = '#333'
+    this.ctx.fillText(text, x, y)
   }
 
   // 获取画布快照

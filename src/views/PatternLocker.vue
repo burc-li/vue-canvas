@@ -9,7 +9,9 @@ onMounted(() => {
     radius: 30, // 半径
     columnSpacing: 50, // 圆圈列间距
     rowsSpacing: 90, // 圆圈行间距
-    stroke: '#fff' // 圆圈描边颜色
+    stroke: '#fff', // 圆圈描边颜色
+    lineStroke: '#de5e60', // 路径描边颜色
+    backgroundColor: '#ccc', // 画布背景颜色
   })
 })
 </script>
@@ -35,19 +37,12 @@ onMounted(() => {
     transform: translateX(-50%);
   }
   #container{
-    width: 400px;
-    height: 600px;
+    width: 380px;
+    height: 630px;
     margin: 0 auto;
     margin-top: 90px;
-    border-radius: 10px;
-    background-color: #ccc;
+    border-radius: 4px;
     box-shadow: 0px 0px 6px #3f3f3f;
   }
 }
 </style>
-// background-color: #3f3f3f;
-// 提示文本： #ffffff
-// 警告文本： #de5e60
-// 填充色：b5a693
-// 填充色：b5a98c
-// 填充色：a69e97
