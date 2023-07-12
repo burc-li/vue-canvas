@@ -89,12 +89,12 @@ export default class BoardCanvas {
 
   // 鼠标事件
   mousedownEvent(e) {
+    const that = this
     // 选中宫格，并绘制点到点路径
     const selected = this.selectCellAt(e.offsetX, e.offsetY)
     if (!selected) return
 
     // 鼠标移动事件
-    const that = this
     this.canvas.onmousemove = function (e) {
       // 路径的最后一个点
       const lastData = that.currentPath[that.currentPath.length - 1]
@@ -107,6 +107,7 @@ export default class BoardCanvas {
       that.selectCellAt(e.offsetX, e.offsetY)
     }
 
+    // 鼠标抬起/移出事件
     this.canvas.onmouseup = this.canvas.onmouseout = function () {
       const canvas = this
       canvas.onmousemove = null
@@ -129,14 +130,13 @@ export default class BoardCanvas {
         }
       } else {
         if (that.password.join('') === currentPathIds.join('')) {
-          text = '图案密码正确'
+          text = '图案密码正确 (づ￣3￣)づ╭❤～'
         } else {
           text = '图案密码错误，请重试'
         }
       }
 
-      // 清空画布
-      that.ctx.clearRect(0, 0, canvas.width, canvas.height)
+      that.ctx.clearRect(0, 0, canvas.width, canvas.height) // 清空画布
       that.restoreImageData(that.cellImageData) // 恢复背景宫格快照
       that.drawText(text) // 绘制提示文字
       that.currentPath = [] // 清空当前绘制路径
@@ -144,7 +144,7 @@ export default class BoardCanvas {
     }
   }
 
-  // 若当前坐标在宫格圆圈内，则选中宫格并绘制路径，返回true
+  // 若当前坐标在宫格圆圈内，则绘制选中样式，绘制路径，返回true
   // 若当前坐标不在宫格圆圈内，则返回false
   selectCellAt(x, y) {
     // 当前坐标点是否在圆内
@@ -158,7 +158,7 @@ export default class BoardCanvas {
     this.restoreImageData(this.lastImageData)
 
     // 绘制选中样式
-    this.drawCircle(data.x, data.y, this.radius / 1.5, 'rgba(0,0,0,0.1)')
+    this.drawCircle(data.x, data.y, this.radius / 1.5, 'rgba(0,0,0,0.2)')
     this.drawCircle(data.x, data.y, this.radius / 2.5, this.selectedFill)
 
     // 绘制路径 从最后一个点到当前点
@@ -200,7 +200,7 @@ export default class BoardCanvas {
     this.ctx.beginPath()
     this.ctx.font = '17px Arial'
     this.ctx.textAlign = 'center'
-    this.ctx.fillStyle = '#333'
+    this.ctx.fillStyle = '#2d2d2d'
     this.ctx.fillText(text, this.canvas.width / 2, 60)
   }
 

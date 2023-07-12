@@ -9,9 +9,9 @@ onMounted(() => {
     radius: 30, // 半径
     columnSpacing: 50, // 圆圈列间距
     rowsSpacing: 90, // 圆圈行间距
-    stroke: '#fff', // 圆圈描边颜色
-    lineStroke: '#de5e60', // 路径描边颜色
-    backgroundColor: '#ccc', // 画布背景颜色
+    stroke: '#b5b5b5', // 圆圈描边颜色
+    lineStroke: '#237fb4', // 路径描边颜色
+    backgroundColor: '#f7f7f7', // 画布背景颜色
   })
 })
 </script>
@@ -37,7 +37,7 @@ onMounted(() => {
     transform: translateX(-50%);
   }
   #container{
-    width: 380px;
+    width: 360px;
     height: 630px;
     margin: 0 auto;
     margin-top: 90px;
