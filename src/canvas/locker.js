@@ -54,7 +54,7 @@ export default class BoardCanvas {
   // 初始化
   init() {
     this.drawCellGrids()
-    this.drawText('请绘制图案密码', this.canvas.width / 2, 60)
+    this.drawText('请绘制新的图案密码')
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
     this.canvas.addEventListener('mousedown', this.mousedownEvent.bind(this))
   }
@@ -89,24 +89,18 @@ export default class BoardCanvas {
 
   // 鼠标事件
   mousedownEvent(e) {
-    // 清空画布
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.currentPath = [] // 清空当前绘制路径
-    this.lastImageData = null // 清空绘制的画布快照
-    this.restoreImageData(this.cellImageData) // 恢复背景宫格快照
-
     // 选中宫格，并绘制点到点路径
-    this.selectCellAt(e.offsetX, e.offsetY)
+    const selected = this.selectCellAt(e.offsetX, e.offsetY)
+    if (!selected) return
 
     // 鼠标移动事件
     const that = this
     this.canvas.onmousemove = function (e) {
-      // 绘制路径 从最后一个点到当前点
+      // 路径的最后一个点
       const lastData = that.currentPath[that.currentPath.length - 1]
-      if (!lastData) return
-
       // 恢复快照
       that.restoreImageData(that.lastImageData)
+
       // 绘制路径
       that.drawLine(lastData, { x: e.offsetX, y: e.offsetY })
       // 选中宫格，并绘制点到点路径
@@ -114,45 +108,51 @@ export default class BoardCanvas {
     }
 
     this.canvas.onmouseup = this.canvas.onmouseout = function () {
-      // 恢复快照
-      that.restoreImageData(that.lastImageData)
+      const canvas = this
+      canvas.onmousemove = null
+      canvas.onmouseup = null
+      canvas.onmouseout = null
 
-      // 文本 和 快照 之间的逻辑！！！！
       const currentPathIds = that.currentPath.map((item) => item.id)
-      if (that.password.length === 0 && that.confirmPassword.length === 0) {
+      let text = ''
+      if (that.password.length === 0) {
         that.password = currentPathIds
-        that.drawText('请再次绘制图案密码', that.canvas.width / 2, 60)
-      } else if (that.password.length > 0 && that.confirmPassword.length === 0) {
+        text = '请再次绘制图案进行确认'
+      } else if (that.confirmPassword.length === 0) {
         that.confirmPassword = currentPathIds
         if (that.password.join('') === that.confirmPassword.join('')) {
-          that.drawText('图案密码设置成功', that.canvas.width / 2, 60)
+          text = '图案密码设置成功'
         } else {
-          that.drawText('与上次绘制不一致，请重试', that.canvas.width / 2, 60)
+          text = '与上次绘制不一致，请重试'
           that.password = []
           that.confirmPassword = []
         }
-      } else if (that.password.length > 0 && that.confirmPassword.length > 0) {
+      } else {
         if (that.password.join('') === currentPathIds.join('')) {
-          that.drawText('图案密码正确', that.canvas.width / 2, 60)
+          text = '图案密码正确'
         } else {
-          that.drawText('图案密码错误', that.canvas.width / 2, 60)
+          text = '图案密码错误'
         }
       }
 
-      this.onmousemove = null
-      this.onmouseup = null
-      this.onmouseout = null
+      // 清空画布
+      that.ctx.clearRect(0, 0, canvas.width, canvas.height)
+      that.restoreImageData(that.cellImageData) // 恢复背景宫格快照
+      that.drawText(text) // 绘制提示文字
+      that.currentPath = [] // 清空当前绘制路径
+      that.lastImageData = that.cellImageData
     }
   }
 
-  // 选中当前坐标所在的圆圈
+  // 若当前坐标在宫格圆圈内，则选中宫格并绘制路径，返回true
+  // 若当前坐标不在宫格圆圈内，则返回false
   selectCellAt(x, y) {
     // 当前坐标点是否在圆内
     const data = this.lockerCells.find((item) => {
       return Math.pow(item.x - x, 2) + Math.pow(item.y - y, 2) <= Math.pow(this.radius, 2)
     })
     const existing = this.currentPath.some((item) => item.id === data?.id)
-    if (!data || existing) return
+    if (!data || existing) return false
 
     // 恢复画布快照
     this.restoreImageData(this.lastImageData)
@@ -172,6 +172,7 @@ export default class BoardCanvas {
 
     // 保存当前点
     this.currentPath.push(data)
+    return true
   }
 
   // 绘制圆
@@ -181,6 +182,7 @@ export default class BoardCanvas {
     this.ctx.fillStyle = fill
     this.ctx.fill()
   }
+
   // 绘制路径
   drawLine(start, end, stroke = this.lineStroke) {
     this.ctx.beginPath()
@@ -192,13 +194,14 @@ export default class BoardCanvas {
     this.ctx.lineJoin = 'round'
     this.ctx.stroke()
   }
+
   // 绘制文字
-  drawText(text, x, y) {
+  drawText(text) {
     this.ctx.beginPath()
     this.ctx.font = '18px Arial'
     this.ctx.textAlign = 'center'
     this.ctx.fillStyle = '#333'
-    this.ctx.fillText(text, x, y)
+    this.ctx.fillText(text, this.canvas.width / 2, 60)
   }
 
   // 获取画布快照

@@ -11,7 +11,7 @@ onMounted(() => {
 
 <template>
   <div class="drawing-board">
-    <h3>这是一个画板，您可以随意涂写和绘画！支持撤销(Ctrl+Z) / 回退(Ctrl+Y)操作</h3>
+    <h3>这是一个画板，您可以随意涂写和绘画！支持撤销(Ctrl+Z) / 恢复(Ctrl+Y)操作</h3>
     <div id="container" ref="container" style="width: 100%; height: 100%"></div>
     <!-- <div id="container" ref="container" style="width: 2000px; height: 2000px"></div> -->
   </div>
