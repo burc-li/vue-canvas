@@ -121,7 +121,7 @@ export default class BoardCanvas {
       } else if (that.confirmPassword.length === 0) {
         that.confirmPassword = currentPathIds
         if (that.password.join('') === that.confirmPassword.join('')) {
-          text = '图案密码设置成功'
+          text = '图案密码设置成功，请输入您的密码'
         } else {
           text = '与上次绘制不一致，请重试'
           that.password = []
@@ -140,7 +140,7 @@ export default class BoardCanvas {
       that.restoreImageData(that.cellImageData) // 恢复背景宫格快照
       that.drawText(text) // 绘制提示文字
       that.currentPath = [] // 清空当前绘制路径
-      that.lastImageData = that.cellImageData
+      that.lastImageData = that.cellImageData // 重置上一次绘制的画布快照
     }
   }
 
@@ -198,7 +198,7 @@ export default class BoardCanvas {
   // 绘制文字
   drawText(text) {
     this.ctx.beginPath()
-    this.ctx.font = '18px Arial'
+    this.ctx.font = '17px Arial'
     this.ctx.textAlign = 'center'
     this.ctx.fillStyle = '#333'
     this.ctx.fillText(text, this.canvas.width / 2, 60)
