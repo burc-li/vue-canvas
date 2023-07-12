@@ -131,7 +131,7 @@ export default class BoardCanvas {
         if (that.password.join('') === currentPathIds.join('')) {
           text = '图案密码正确'
         } else {
-          text = '图案密码错误'
+          text = '图案密码错误，请重试'
         }
       }
 
